@@ -12,7 +12,6 @@
 #include <climits>
 #include <algorithm>
 #include <filesystem>
-#include <iostream>
 
 class CSVHandler {
     std::string path;

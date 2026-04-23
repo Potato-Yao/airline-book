@@ -50,25 +50,13 @@ void CSVHandler::write_row(std::ostream &file, const std::vector<std::string> &v
     if (count == -1) {
         column = column_count;
     } else if (count == -2) {
-        column = INT_MAX;
+        column = static_cast<int>(values.size());
     } else {
         column = count;
     }
 
-    for (int i = 0; i < std::min(column, static_cast<int>(values.size())); ++i) {
-        if (i > 0) {
-            file << ',';
-        }
-        file << values[i];
-    }
-
-    if (const int sub = column - static_cast<int>(values.size()); count != -2 && sub > 0) {
-        for (int i = 0; i < sub; ++i) {
-            file << ',';
-        }
-    }
-
-    file << '\n';
+    const auto line = generate_line(values, column);
+    file << line;
 }
 
 void CSVHandler::init(const std::vector<std::string> &titles) {
