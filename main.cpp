@@ -20,7 +20,7 @@ int main() {
     }
     // csv_handler.remove_row(1);
     std::string name("Bob jr.");
-    csv_handler.update_cell(1, 0, name);
+    csv_handler.update_cell(std::vector{new Cell("Bob", "name", name)});
     l = csv_handler.read_row(1);
     for (const auto &s : l) {
         std::cout << s << std::endl;

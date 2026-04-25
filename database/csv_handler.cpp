@@ -4,6 +4,9 @@
 
 #include "csv_handler.h"
 
+#include <fstream>
+#include <variant>
+
 std::vector<std::string> CSVHandler::split_line(const std::string &s) {
     std::vector<std::string> result;
     std::string current;
@@ -65,6 +68,7 @@ void CSVHandler::init(const std::vector<std::string> &titles) {
     write_row(file, titles, -2);
 
     column_count = static_cast<int>(titles.size());
+    this->titles = std::vector(titles);
 }
 
 void CSVHandler::insert(const std::vector<std::string> &values) {
@@ -123,27 +127,34 @@ void CSVHandler::remove_row(int index) {
     --row_count;
 }
 
-void CSVHandler::update_cell(int row, int column, std::string &value) const {
-    row += 1;
-    if (row > row_count || column > column_count) {
-        throw std::out_of_range("Cannot update row index out of range");
-    }
+void CSVHandler::update_cell_inner(std::vector<std::tuple<int, int, std::string &> > &relations) const {
+    std::sort(relations.begin(), relations.end(), [](const auto &a, const auto &b) {
+        return std::get<0>(a) <= std::get<0>(b);
+    });
 
     std::ifstream file(path);
     std::ofstream temp(path + ".tmp", std::ofstream::trunc);
     int counter = 0;
     std::string line;
 
-    while (getline(file, line)) {
-        if (counter != row) {
-            temp << line << '\n';
-        } else {
-            auto l = split_line(line);
-            l[column] = value;
-
-            temp << generate_line(l, static_cast<int>(l.size()));
+    for (auto relation: relations) {
+        auto row = std::get<0>(relation);
+        auto column = std::get<1>(relation);
+        if (row > row_count || column > column_count) {
+            throw std::out_of_range("Cannot update row index out of range");
         }
-        ++counter;
+
+        while (getline(file, line)) {
+            if (counter != row) {
+                temp << line << '\n';
+            } else {
+                auto l = split_line(line);
+                l[column] = std::get<2>(relation);
+
+                temp << generate_line(l, static_cast<int>(l.size()));
+            }
+            ++counter;
+        }
     }
 
     file.close();
@@ -153,10 +164,57 @@ void CSVHandler::update_cell(int row, int column, std::string &value) const {
     std::filesystem::rename(path + ".tmp", path);
 }
 
-int CSVHandler::get_column_count() const {
+int CSVHandler::get_column_number(const std::string &title) const {
+    for (int i = 0; i < column_count; ++i) {
+        if (titles[i] == title) {
+            return i;
+        }
+    }
+
+    throw std::out_of_range("Cannot find column with title " + title);
+}
+
+int CSVHandler::get_row_number(const std::string &key) const {
+    std::ifstream file(path);
+
+    int counter = 0;
+    std::string line;
+
+    while (getline(file, line)) {
+        if (auto v = split_line(line); v[0] == key) {
+            return counter;
+        }
+        ++counter;
+    }
+
+    throw std::out_of_range("Cannot find row with key " + key);
+}
+
+void CSVHandler::update_cell(const std::vector<Cell *> &cells) const {
+    if (cells.empty()) {
+        return;
+    }
+
+    std::vector<std::tuple<int, int, std::string &> > relations;
+
+    for (const auto cell: cells) {
+        auto row = get_row_number(cell->key);
+        auto column = get_column_number(cell->column);
+
+        relations.emplace_back(row, column, std::ref(cell->value));
+    }
+
+    update_cell_inner(relations);
+}
+
+const int CSVHandler::get_column_count() const {
     return column_count;
 }
 
-int CSVHandler::get_row_count() const {
+const int CSVHandler::get_row_count() const {
     return row_count;
+}
+
+const std::vector<std::string> &CSVHandler::get_titles() const {
+    return titles;
 }
