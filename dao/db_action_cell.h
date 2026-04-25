@@ -7,12 +7,12 @@
 #include <string>
 
 
-struct Cell {
+struct DBActionCell {
     std::string key; // for the row
     std::string column; // title of the column
     std::string value;
 
-    Cell(std::string key, std::string column, std::string value) : key(std::move(key)), column(std::move(column)),
+    DBActionCell(std::string key, std::string column, std::string value) : key(std::move(key)), column(std::move(column)),
                                                                    value(std::move(value)) {
     }
 };

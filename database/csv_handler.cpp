@@ -5,6 +5,7 @@
 #include "csv_handler.h"
 
 #include <fstream>
+#include <iostream>
 #include <variant>
 
 std::vector<std::string> CSVHandler::split_line(const std::string &s) {
@@ -43,9 +44,9 @@ std::string CSVHandler::generate_line(const std::vector<std::string> &values, co
     return line;
 }
 
-bool CSVHandler::is_initialized() const {
+bool CSVHandler::is_empty() const {
     std::ifstream file(path);
-    return file.peek() != std::ifstream::traits_type::eof();
+    return file.peek() == std::ifstream::traits_type::eof();
 }
 
 void CSVHandler::write_row(std::ostream &file, const std::vector<std::string> &values, const int count) const {
@@ -62,13 +63,26 @@ void CSVHandler::write_row(std::ostream &file, const std::vector<std::string> &v
     file << line;
 }
 
-void CSVHandler::init(const std::vector<std::string> &titles) {
-    std::ofstream file(path, std::ofstream::trunc);
+void CSVHandler::init(const std::vector<std::string> &titles, InitMode mode) {
+    if (mode == Override || (mode == Load && is_empty())) {
+        std::ofstream file(path, std::ofstream::trunc);
 
-    write_row(file, titles, -2);
+        write_row(file, titles, -2);
 
-    column_count = static_cast<int>(titles.size());
-    this->titles = std::vector(titles);
+        column_count = static_cast<int>(titles.size());
+        this->titles = std::vector(titles);
+    } else {
+        std::ifstream file(path);
+        std::string line;
+        getline(file, line);
+        column_count = static_cast<int>(split_line(line).size());
+        int row_counter = 0;
+
+        while (getline(file, line)) {
+            ++row_counter;
+        }
+        row_count = row_counter;
+    }
 }
 
 void CSVHandler::insert(const std::vector<std::string> &values) {
@@ -79,7 +93,7 @@ void CSVHandler::insert(const std::vector<std::string> &values) {
 }
 
 std::vector<std::string> CSVHandler::read_row(int index) const {
-    index += 1;
+    index += 1; // skip the title line
     if (index > row_count) {
         throw std::out_of_range("Cannot read row from index out of range");
     }
@@ -98,6 +112,40 @@ std::vector<std::string> CSVHandler::read_row(int index) const {
     }
 
     return result;
+}
+
+std::vector<std::vector<std::string> > CSVHandler::read_rows(int start, int end) const {
+    if (start > row_count || end > row_count) {
+        throw std::out_of_range("Cannot read row from index out of range");
+    }
+    if (end != -1 && start > end) {
+        throw std::out_of_range("End should be greater than start");
+    }
+    start += 1; // skip the title line
+    end += 1; // for same reason
+
+    std::vector<std::vector<std::string> > result{};
+    std::ifstream file(path);
+    std::string line;
+
+    for (int counter = 0; getline(file, line); ++counter) {
+        if (end != 0 && counter > end) {
+            // end = -1 for reading to the end. but this already increased by one before
+            break;
+        }
+        if (counter < start) {
+            continue;
+        }
+
+        auto curr = split_line(line);
+        result.push_back(curr);
+    }
+
+    return result;
+}
+
+std::vector<std::vector<std::string> > CSVHandler::load() const {
+    return read_rows(0, -1);
 }
 
 void CSVHandler::remove_row(int index) {
@@ -147,14 +195,22 @@ void CSVHandler::update_cell_inner(std::vector<std::tuple<int, int, std::string 
         while (getline(file, line)) {
             if (counter != row) {
                 temp << line << '\n';
+                ++counter;
             } else {
                 auto l = split_line(line);
                 l[column] = std::get<2>(relation);
 
                 temp << generate_line(l, static_cast<int>(l.size()));
+                ++counter;
+                break;
             }
-            ++counter;
         }
+    }
+
+    // deal with left lines
+    while (getline(file, line)) {
+        temp << line << '\n';
+        ++counter;
     }
 
     file.close();
@@ -190,7 +246,7 @@ int CSVHandler::get_row_number(const std::string &key) const {
     throw std::out_of_range("Cannot find row with key " + key);
 }
 
-void CSVHandler::update_cell(const std::vector<Cell *> &cells) const {
+void CSVHandler::update_cell(const std::vector<DBActionCell *> &cells) const {
     if (cells.empty()) {
         return;
     }

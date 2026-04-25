@@ -11,7 +11,12 @@
 #include <algorithm>
 #include <filesystem>
 
-#include "cell.h"
+#include "../dao/db_action_cell.h"
+
+enum InitMode {
+    Load, // if title existing, then load. generate title otherwise
+    Override, // no matter what, override existing content then generate title
+};
 
 class CSVHandler {
     std::string path;
@@ -36,9 +41,9 @@ public:
     explicit CSVHandler(std::string path) : path(std::move(path)), row_count(0), column_count(0) {
     }
 
-    bool is_initialized() const;
+    bool is_empty() const;
 
-    void init(const std::vector<std::string> &titles);
+    void init(const std::vector<std::string> &titles, InitMode mode);
 
     void insert(const std::vector<std::string> &values);
 
@@ -50,11 +55,17 @@ public:
 
     std::vector<std::string> read_row(int index) const;
 
+    /// @param start 0 for from the beginning since row number strats with 0
+    /// @param end -1 for read to the end of the file
+    std::vector<std::vector<std::string> > read_rows(int start, int end) const;
+
+    std::vector<std::vector<std::string> > load() const;
+
     void remove_row(int index);
 
     std::vector<std::string> read_column(int index);
 
-    void update_cell(const std::vector<Cell *> &cells) const;
+    void update_cell(const std::vector<DBActionCell *> &cells) const;
 
     const int get_row_count() const;
 

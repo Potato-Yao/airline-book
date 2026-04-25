@@ -10,6 +10,8 @@ add_executable(airline_book main.cpp
         dao/flight.h
         manager/flight_manager.cpp
         manager/flight_manager.h
-        database/cell.cpp
-        database/cell.h
+        dao/db_action_cell.cpp
+        dao/db_action_cell.h
+        manager/database_manager.cpp
+        manager/database_manager.h
 )
