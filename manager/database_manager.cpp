@@ -29,6 +29,8 @@ void DatabaseManager::close() {
 }
 
 void DatabaseManager::register_flight(FlightManager &manager) {
+    // todo unique check here
+
     csv_handler.insert(manager.display_flight());
     flight_managers.push_back(std::move(manager));
 }

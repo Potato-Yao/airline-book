@@ -16,6 +16,9 @@ std::vector<std::string> CSVHandler::split_line(const std::string &s) {
             result.push_back(current);
             current.clear();
         } else {
+            if (c == '\r') {
+                continue;
+            }
             current += c;
         }
     }

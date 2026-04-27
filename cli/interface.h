@@ -12,9 +12,15 @@
 #include "state.h"
 #include "../manager/database_manager.h"
 
+enum SymbolMode {
+    Dollar,
+    Arrow,
+    None,
+};
 
 class Interface {
     State state = Initial;
+    SymbolMode symbol_mode = Dollar;
     DatabaseManager &database_manager;
     std::vector<std::string> book_tasks;
     std::vector<std::string> refund_tasks;
@@ -24,7 +30,7 @@ class Interface {
 
     void run_inner();
 
-    void execute_list(const std::vector<std::string> &input) const;
+    void execute_list(const std::vector<std::string> &input);
 
     void execute_book(const std::vector<std::string> &input);
 
@@ -32,15 +38,15 @@ class Interface {
 
     void execute_commit();
 
-    void execute_register(const std::vector<std::string> &input) const;
+    void execute_register(const std::vector<std::string> &input);
 
     void execute_exit();
 
-    static void execute_help();
+    void execute_help();
 
     void execute(const std::vector<std::string> &input);
 
-    static void display_error(const std::string &error);
+    void display_error(const std::string &error);
 
     static void display_flights(const std::vector<const FlightManager *> &input);
 

@@ -10,14 +10,25 @@ void Interface::run_inner() {
 
     std::vector<std::string> lines;
     std::string input;
+    std::cout << "$ " << std::flush;
     while (state != Exit) {
-        std::cout << "$ " << std::flush;
+        if (symbol_mode == None) {
+            symbol_mode = Dollar;
+            std::cout << "$ " << std::flush;
+        }
+
         getline(std::cin, input);
         execute(split_command(input));
+
+        if (symbol_mode == Dollar) {
+            std::cout << "$ " << std::flush;
+        } else if (symbol_mode == Arrow) {
+            std::cout << "> " << std::flush;
+        }
     }
 }
 
-void Interface::execute_list(const std::vector<std::string> &input) const {
+void Interface::execute_list(const std::vector<std::string> &input) {
     if (input.size() == 1) {
         display_flights(database_manager.get_flights());
     } else {
@@ -44,6 +55,8 @@ void Interface::execute_book(const std::vector<std::string> &input) {
     } else {
         book_tasks.push_back(input[1]);
     }
+
+    symbol_mode = Arrow;
 }
 
 void Interface::execute_refund(const std::vector<std::string> &input) {
@@ -52,6 +65,8 @@ void Interface::execute_refund(const std::vector<std::string> &input) {
     } else {
         refund_tasks.push_back(input[1]);
     }
+
+    symbol_mode = Arrow;
 }
 
 void Interface::execute_commit() {
@@ -60,9 +75,11 @@ void Interface::execute_commit() {
 
     book_tasks.clear();
     refund_tasks.clear();
+
+    symbol_mode = Dollar;
 }
 
-void Interface::execute_register(const std::vector<std::string> &input) const {
+void Interface::execute_register(const std::vector<std::string> &input) {
     // command arguments[five]
     if (input.size() != 6) {
         display_error("register command requires five arguments!");
@@ -119,11 +136,15 @@ void Interface::execute(const std::vector<std::string> &input) {
         execute_help();
     } else if (input[0] == EXIT) {
         execute_exit();
+    } else {
+        display_error("Unknown command!");
     }
 }
 
 void Interface::display_error(const std::string &error) {
-    std::cerr << "Error: " << error << std::endl;
+    symbol_mode = None;
+    // do not use std error, output order issus may occur
+    std::cout << "\033[31m" << "Error: " << error << "\033[0m" << std::endl;
 }
 
 void Interface::display_flights(const std::vector<const FlightManager *> &input) {
