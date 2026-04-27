@@ -24,13 +24,22 @@ DatabaseManager &DatabaseManager::get_manager() {
     return manager;
 }
 
+void DatabaseManager::close() {
+    csv_handler.close();
+}
+
 void DatabaseManager::register_flight(FlightManager &manager) {
     csv_handler.insert(manager.display_flight());
     flight_managers.push_back(std::move(manager));
 }
 
-const std::vector<FlightManager> &DatabaseManager::get_flights() {
-    return flight_managers;
+std::vector<const FlightManager *> DatabaseManager::get_flights() const {
+    std::vector<const FlightManager *> result;
+    result.reserve(flight_managers.size());
+    for (const auto &flight: flight_managers) {
+        result.push_back(&flight);
+    }
+    return result;
 }
 
 FlightManager &DatabaseManager::query_flight_by_id_inner(const std::string &id) {
@@ -72,8 +81,8 @@ void DatabaseManager::refund_ticket_from(const std::vector<std::string> &ids) {
     csv_handler.update_cell(action_cells);
 }
 
-const FlightManager &DatabaseManager::query_flight_by_id(const std::string &id) {
-    return query_flight_by_id_inner(id);
+std::vector<const FlightManager *> DatabaseManager::query_flight_by_id(const std::string &id) {
+    return {&query_flight_by_id_inner(id)};
 }
 
 std::vector<const FlightManager *> DatabaseManager::query_flight_by_time(const std::string &time) const {

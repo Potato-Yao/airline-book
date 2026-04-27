@@ -47,6 +47,8 @@ public:
 
     void insert(const std::vector<std::string> &values);
 
+    void close();
+
     template<typename... Args>
     void insert(Args &&... args) {
         const std::vector<std::string> values{std::forward<Args>(args)...};

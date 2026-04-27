@@ -20,15 +20,18 @@ class DatabaseManager {
 public:
     static DatabaseManager &get_manager();
 
+    void close();
+
+    /// flights should hold uniqueness
     void register_flight(FlightManager &manager);
 
-    const std::vector<FlightManager> &get_flights();
+    std::vector<const FlightManager *> get_flights() const;
 
     void book_ticket_from(const std::vector<std::string> &ids);
 
     void refund_ticket_from(const std::vector<std::string> &ids);
 
-    const FlightManager &query_flight_by_id(const std::string &id);
+    std::vector<const FlightManager *> query_flight_by_id(const std::string &id);
 
     std::vector<const FlightManager *> query_flight_by_time(const std::string &time) const;
 

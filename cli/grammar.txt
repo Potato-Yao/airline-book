@@ -1,0 +1,61 @@
+grammar of statement in the CLI
+
+<command> [options] [arguments]
+
+available commands:
+
+command: list
+description: list flight info
+options: if no option provide, list all flights. available option can be "id", "time" or "terminal".
+arguments: should be the key you want to search for.
+
+command: book
+description: book a business
+options: no option needed
+arguments: the id of flight you want to book
+
+command: refund
+description: refund a business
+options: no option needed
+arguments: the id of flight you want to refund
+
+command: register
+description: register a flight
+options: no options needed
+arguments: thr arguments should be filled in the following order, no missing item is allowed: id start_station terminal_station flight_time ticket_number. Notice that the time should follow the format YYYY-MM-DD-HH-MM
+
+command: commit
+description: commit and execute statements for booking or refunding.
+options: no option needed
+arguments: no arguments needed
+
+command: exit
+description: exit the program.
+options: no option needed
+arguments: no arguments needed
+
+example
+
+ex0, list all flights
+
+list
+commit
+
+ex1, book flights with id "11", "22" and "33"
+
+book 11
+book 22
+book 33
+commit
+
+ex2, list flight whose terminal station is "Shenzhen"
+
+list terminal Shenzhen
+
+ex3, register a flight
+
+register ID_SAMPLE Beijing Shenzhen 2026-01-01-12-00 100
+
+ex4, exit the program
+
+exit

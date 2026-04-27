@@ -75,9 +75,10 @@ void CSVHandler::init(const std::vector<std::string> &titles, InitMode mode) {
         std::ifstream file(path);
         std::string line;
         getline(file, line);
-        column_count = static_cast<int>(split_line(line).size());
-        int row_counter = 0;
+        this->titles = split_line(line);
+        column_count = static_cast<int>(this->titles.size());
 
+        int row_counter = 0;
         while (getline(file, line)) {
             ++row_counter;
         }
@@ -90,6 +91,9 @@ void CSVHandler::insert(const std::vector<std::string> &values) {
 
     write_row(file, values);
     ++row_count;
+}
+
+void CSVHandler::close() {
 }
 
 std::vector<std::string> CSVHandler::read_row(int index) const {

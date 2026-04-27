@@ -1,4 +1,6 @@
 #include <iostream>
+
+#include "cli/interface.h"
 #include "database/csv_handler.h"
 #include "manager/database_manager.h"
 
@@ -42,33 +44,35 @@ int main() {
     //     }
     // }
     // run_app();
-    auto manager = DatabaseManager::get_manager();
-    auto flight0 = FlightManager::register_flight("123", "Beijing", "Shanghai", "2024-06-01-12-00", 100);
-    auto flight1 = FlightManager::register_flight("456", "Shanghai", "Guangzhou", "2024-06-02-12-00", 200);
-    auto flight2 = FlightManager::register_flight("789", "Guangzhou", "Shenzhen", "2024-06-02-12-00", 300);
-    auto flight3 = FlightManager::register_flight("012", "Guangzhou", "Shenzhen", "2024-06-04-12-00", 400);
-    manager.register_flight(flight0);
-    manager.register_flight(flight1);
-    manager.register_flight(flight2);
-    manager.register_flight(flight3);
-    for (auto e: manager.get_flights()) {
-        std::cout << e.get_flight_id() << " " << e.get_flight_start_station() << " " << e.get_flight_terminal_station()
-                << " " << e.get_flight_time() << " " << e.get_flight_ticket_number() << std::endl;
-    }
-    manager.book_ticket_from(std::vector<std::string>{"123", "456"});
-    for (auto e: manager.get_flights()) {
-        std::cout << e.get_flight_id() << " " << e.get_flight_start_station() << " " << e.get_flight_terminal_station()
-                << " " << e.get_flight_time() << " " << e.get_flight_ticket_number() << std::endl;
-    }
-    manager.refund_ticket_from(std::vector<std::string>{"123", "456"});
-    for (auto e: manager.get_flights()) {
-        std::cout << e.get_flight_id() << " " << e.get_flight_start_station() << " " << e.get_flight_terminal_station()
-                << " " << e.get_flight_time() << " " << e.get_flight_ticket_number() << std::endl;
-    }
-    for (auto e: manager.query_flight_by_terminal("Shenzhen")) {
-        std::cout << e->get_flight_id() << " " << e->get_flight_start_station() << " " << e->get_flight_terminal_station()
-                << " " << e->get_flight_time() << " " << e->get_flight_ticket_number() << std::endl;
-    }
+    // auto manager = DatabaseManager::get_manager();
+    // auto flight0 = FlightManager::register_flight("123", "Beijing", "Shanghai", "2024-06-01-12-00", 100);
+    // auto flight1 = FlightManager::register_flight("456", "Shanghai", "Guangzhou", "2024-06-02-12-00", 200);
+    // auto flight2 = FlightManager::register_flight("789", "Guangzhou", "Shenzhen", "2024-06-02-12-00", 300);
+    // auto flight3 = FlightManager::register_flight("012", "Guangzhou", "Shenzhen", "2024-06-04-12-00", 400);
+    // manager.register_flight(flight0);
+    // manager.register_flight(flight1);
+    // manager.register_flight(flight2);
+    // manager.register_flight(flight3);
+    // for (auto e: manager.get_flights()) {
+    //     std::cout << e.get_flight_id() << " " << e.get_flight_start_station() << " " << e.get_flight_terminal_station()
+    //             << " " << e.get_flight_time() << " " << e.get_flight_ticket_number() << std::endl;
+    // }
+    // manager.book_ticket_from(std::vector<std::string>{"123", "456"});
+    // for (auto e: manager.get_flights()) {
+    //     std::cout << e.get_flight_id() << " " << e.get_flight_start_station() << " " << e.get_flight_terminal_station()
+    //             << " " << e.get_flight_time() << " " << e.get_flight_ticket_number() << std::endl;
+    // }
+    // manager.refund_ticket_from(std::vector<std::string>{"123", "456"});
+    // for (auto e: manager.get_flights()) {
+    //     std::cout << e.get_flight_id() << " " << e.get_flight_start_station() << " " << e.get_flight_terminal_station()
+    //             << " " << e.get_flight_time() << " " << e.get_flight_ticket_number() << std::endl;
+    // }
+    // for (auto e: manager.query_flight_by_terminal("Shenzhen")) {
+    //     std::cout << e->get_flight_id() << " " << e->get_flight_start_station() << " " << e->get_flight_terminal_station()
+    //             << " " << e->get_flight_time() << " " << e->get_flight_ticket_number() << std::endl;
+    // }
+    auto interface = Interface::get_interface();
+    interface.run();
 
     return 0;
 }
