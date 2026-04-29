@@ -29,7 +29,11 @@ void DatabaseManager::close() {
 }
 
 void DatabaseManager::register_flight(FlightManager &manager) {
-    // todo unique check here
+    for (const auto &existing: flight_managers) {
+        if (existing.get_flight_id() == manager.get_flight_id()) {
+            throw std::invalid_argument("Flight with id " + manager.get_flight_id() + " already exists");
+        }
+    }
 
     csv_handler.insert(manager.display_flight());
     flight_managers.push_back(std::move(manager));
@@ -55,7 +59,7 @@ FlightManager &DatabaseManager::query_flight_by_id_inner(const std::string &id) 
 }
 
 void DatabaseManager::book_ticket_from(const std::vector<std::string> &ids) {
-    std::vector<DBActionCell *> action_cells;
+    std::vector<DBActionCell> action_cells;
 
     for (const auto &id: ids) {
         auto &flight = query_flight_by_id_inner(id);
@@ -64,20 +68,20 @@ void DatabaseManager::book_ticket_from(const std::vector<std::string> &ids) {
         }
 
         flight.take_ticket();
-        action_cells.push_back(new DBActionCell(id, "ticket_number",
-                                                std::to_string(flight.get_flight_ticket_number())));
+        action_cells.emplace_back(id, "ticket_number",
+                                  std::to_string(flight.get_flight_ticket_number()));
     }
     csv_handler.update_cell(action_cells);
 }
 
 void DatabaseManager::refund_ticket_from(const std::vector<std::string> &ids) {
-    std::vector<DBActionCell *> action_cells;
+    std::vector<DBActionCell> action_cells;
 
     for (const auto &id: ids) {
         auto &flight = query_flight_by_id_inner(id);
         flight.refund_ticket();
-        action_cells.push_back(new DBActionCell(id, "ticket_number",
-                                                std::to_string(flight.get_flight_ticket_number())));
+        action_cells.emplace_back(id, "ticket_number",
+                                  std::to_string(flight.get_flight_ticket_number()));
     }
 
     csv_handler.update_cell(action_cells);

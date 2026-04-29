@@ -55,8 +55,6 @@ public:
         insert(values);
     }
 
-    std::vector<std::string> read_row(int index) const;
-
     /// @param start 0 for from the beginning since row number strats with 0
     /// @param end -1 for read to the end of the file
     std::vector<std::vector<std::string> > read_rows(int start, int end) const;
@@ -67,11 +65,11 @@ public:
 
     std::vector<std::string> read_column(int index);
 
-    void update_cell(const std::vector<DBActionCell *> &cells) const;
+    void update_cell(const std::vector<DBActionCell> &cells) const;
 
-    const int get_row_count() const;
+    int get_row_count() const;
 
-    const int get_column_count() const;
+    int get_column_count() const;
 
     const std::vector<std::string> &get_titles() const;
 };

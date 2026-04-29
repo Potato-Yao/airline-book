@@ -122,22 +122,26 @@ void Interface::execute(const std::vector<std::string> &input) {
         return;
     }
 
-    if (input[0] == LIST) {
-        execute_list(input);
-    } else if (input[0] == BOOK) {
-        execute_book(input);
-    } else if (input[0] == REFUND) {
-        execute_refund(input);
-    } else if (input[0] == COMMIT) {
-        execute_commit();
-    } else if (input[0] == REGISTER) {
-        execute_register(input);
-    } else if (input[0] == HELP) {
-        execute_help();
-    } else if (input[0] == EXIT) {
-        execute_exit();
-    } else {
-        display_error("Unknown command!");
+    try {
+        if (input[0] == LIST) {
+            execute_list(input);
+        } else if (input[0] == BOOK) {
+            execute_book(input);
+        } else if (input[0] == REFUND) {
+            execute_refund(input);
+        } else if (input[0] == COMMIT) {
+            execute_commit();
+        } else if (input[0] == REGISTER) {
+            execute_register(input);
+        } else if (input[0] == HELP) {
+            execute_help();
+        } else if (input[0] == EXIT) {
+            execute_exit();
+        } else {
+            display_error("Unknown command!");
+        }
+    } catch (const std::exception &e) {
+        display_error(e.what());
     }
 }
 

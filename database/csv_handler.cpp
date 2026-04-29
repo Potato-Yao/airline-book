@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <variant>
 
 std::vector<std::string> CSVHandler::split_line(const std::string &s) {
@@ -49,6 +50,10 @@ std::string CSVHandler::generate_line(const std::vector<std::string> &values, co
 
 bool CSVHandler::is_empty() const {
     std::ifstream file(path);
+    if (!file.is_open()) {
+        return true;
+    }
+
     return file.peek() == std::ifstream::traits_type::eof();
 }
 
@@ -69,6 +74,9 @@ void CSVHandler::write_row(std::ostream &file, const std::vector<std::string> &v
 void CSVHandler::init(const std::vector<std::string> &titles, InitMode mode) {
     if (mode == Override || (mode == Load && is_empty())) {
         std::ofstream file(path, std::ofstream::trunc);
+        if (!file.is_open()) {
+            throw std::runtime_error("Cannot open file for writing: " + path);
+        }
 
         write_row(file, titles, -2);
 
@@ -76,6 +84,9 @@ void CSVHandler::init(const std::vector<std::string> &titles, InitMode mode) {
         this->titles = std::vector(titles);
     } else {
         std::ifstream file(path);
+        if (!file.is_open()) {
+            throw std::runtime_error("Cannot open file for reading: " + path);
+        }
         std::string line;
         getline(file, line);
         this->titles = split_line(line);
@@ -91,34 +102,15 @@ void CSVHandler::init(const std::vector<std::string> &titles, InitMode mode) {
 
 void CSVHandler::insert(const std::vector<std::string> &values) {
     std::ofstream file(path, std::ofstream::app);
+    if (!file.is_open()) {
+        throw std::runtime_error("Cannot open file for appending: " + path);
+    }
 
     write_row(file, values);
     ++row_count;
 }
 
 void CSVHandler::close() {
-}
-
-std::vector<std::string> CSVHandler::read_row(int index) const {
-    index += 1; // skip the title line
-    if (index > row_count) {
-        throw std::out_of_range("Cannot read row from index out of range");
-    }
-
-    std::ifstream file(path);
-    std::string line;
-    std::vector<std::string> result;
-
-    int counter = 0;
-    while (getline(file, line)) {
-        if (counter == index) {
-            result = split_line(line);
-            break;
-        }
-        ++counter;
-    }
-
-    return result;
 }
 
 std::vector<std::vector<std::string> > CSVHandler::read_rows(int start, int end) const {
@@ -133,6 +125,9 @@ std::vector<std::vector<std::string> > CSVHandler::read_rows(int start, int end)
 
     std::vector<std::vector<std::string> > result{};
     std::ifstream file(path);
+    if (!file.is_open()) {
+        throw std::runtime_error("Cannot open file for reading: " + path);
+    }
     std::string line;
 
     for (int counter = 0; getline(file, line); ++counter) {
@@ -162,7 +157,13 @@ void CSVHandler::remove_row(int index) {
     }
 
     std::ifstream file(path);
+    if (!file.is_open()) {
+        throw std::runtime_error("Cannot open file for reading: " + path);
+    }
     std::ofstream temp(path + ".tmp", std::ofstream::trunc);
+    if (!temp.is_open()) {
+        throw std::runtime_error("Cannot open temp file for writing: " + path + ".tmp");
+    }
     int counter = 0;
     std::string line;
 
@@ -188,7 +189,13 @@ void CSVHandler::update_cell_inner(std::vector<std::tuple<int, int, std::string 
     });
 
     std::ifstream file(path);
+    if (!file.is_open()) {
+        throw std::runtime_error("Cannot open file for reading: " + path);
+    }
     std::ofstream temp(path + ".tmp", std::ofstream::trunc);
+    if (!temp.is_open()) {
+        throw std::runtime_error("Cannot open temp file for writing: " + path + ".tmp");
+    }
     int counter = 0;
     std::string line;
 
@@ -239,6 +246,9 @@ int CSVHandler::get_column_number(const std::string &title) const {
 
 int CSVHandler::get_row_number(const std::string &key) const {
     std::ifstream file(path);
+    if (!file.is_open()) {
+        throw std::runtime_error("Cannot open file for reading: " + path);
+    }
 
     int counter = 0;
     std::string line;
@@ -253,28 +263,28 @@ int CSVHandler::get_row_number(const std::string &key) const {
     throw std::out_of_range("Cannot find row with key " + key);
 }
 
-void CSVHandler::update_cell(const std::vector<DBActionCell *> &cells) const {
+void CSVHandler::update_cell(const std::vector<DBActionCell> &cells) const {
     if (cells.empty()) {
         return;
     }
 
     std::vector<std::tuple<int, int, std::string &> > relations;
 
-    for (const auto cell: cells) {
-        auto row = get_row_number(cell->key);
-        auto column = get_column_number(cell->column);
+    for (const auto &cell: cells) {
+        auto row = get_row_number(cell.key);
+        auto column = get_column_number(cell.column);
 
-        relations.emplace_back(row, column, std::ref(cell->value));
+        relations.emplace_back(row, column, const_cast<std::string &>(cell.value));
     }
 
     update_cell_inner(relations);
 }
 
-const int CSVHandler::get_column_count() const {
+int CSVHandler::get_column_count() const {
     return column_count;
 }
 
-const int CSVHandler::get_row_count() const {
+int CSVHandler::get_row_count() const {
     return row_count;
 }
 

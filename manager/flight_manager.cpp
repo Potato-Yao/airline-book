@@ -19,7 +19,7 @@ FlightManager FlightManager::register_flight(const std::vector<std::string> &fli
         throw std::invalid_argument("Flight should have 5 fields");
     }
 
-    return register_flight(flight[0], flight[1], flight[2], flight[3], std::stoi(flight[4]));
+    return register_flight(flight[0], flight[1], flight[2], flight[3], std::stol(flight[4]));
 }
 
 bool FlightManager::has_free_ticket() const {
