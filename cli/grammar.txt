@@ -41,11 +41,12 @@ ex0, list all flights
 list
 commit
 
-ex1, book flights with id "11", "22" and "33"
+ex1, book flights with id "11", "22" and "33", refund flight with id "44"
 
 book 11
 book 22
 book 33
+refund 44
 commit
 
 ex2, list flight whose terminal station is "Shenzhen"
